@@ -1,10 +1,23 @@
+
+#ifndef NULLSOFT_WINAMP_IN2H
+#define NULLSOFT_WINAMP_IN2H
 #include "out.h"
 
 // note: exported symbol is now winampGetInModule2.
 
-#define IN_VER 0x100
+#define IN_UNICODE 0x0F000000
 
-typedef struct 
+#define GETFILEINFO_TITLE_LENGTH 2048
+
+//#ifdef UNICODE_INPUT_PLUGIN
+#define in_char wchar_t
+#define IN_VER (IN_UNICODE | 0x100)
+//#else*/
+//#define in_char char
+//#define IN_VER 0x100
+//#endif
+
+typedef struct
 {
 	int version;				// module type (IN_VER)
 	char *description;			// description of module, with version string
@@ -24,12 +37,12 @@ typedef struct
 	void (*Init)();				// called at program init
 	void (*Quit)();				// called at program quit
 
-	void (*GetFileInfo)(char *file, char *title, int *length_in_ms); // if file == NULL, current playing is used
-	int (*InfoBox)(char *file, HWND hwndParent);
+	void (*GetFileInfo)(const in_char *file, in_char *title, int *length_in_ms); // if file == NULL, current playing is used
+	int (*InfoBox)(const in_char *file, HWND hwndParent);
 	
-	int (*IsOurFile)(char *fn);	// called before extension checks, to allow detection of mms://, etc
+	int (*IsOurFile)(const in_char *fn);	// called before extension checks, to allow detection of mms://, etc
 	// playback stuff
-	int (*Play)(char *fn);		// return zero on success, -1 on file-not-found, some other value on other (stopping winamp) error
+	int (*Play)(const in_char *fn);		// return zero on success, -1 on file-not-found, some other value on other (stopping winamp) error
 	void (*Pause)();			// pause stream
 	void (*UnPause)();			// unpause stream
 	int (*IsPaused)();			// ispaused? return 1 if paused, 0 if not
@@ -100,4 +113,4 @@ typedef struct
 	Out_Module *outMod; // filled in by winamp, optionally used :)
 } In_Module;
 
-
+#endif

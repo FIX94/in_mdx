@@ -20,13 +20,16 @@ extern void volatile *(*MXDRV_GetWork)(int);
 //クレジット表示
 void about(HWND hwndParent)
 {
-	char credit[256];
+	TCHAR credit[512];
+	TCHAR mdxdrv_credit[256];
+	size_t ldummy;
+	mbstowcs_s(&ldummy, mdxdrv_credit, (char *)MXDRV_GetWork(MXDRV_WORK_CREDIT), 256);
 
-    wsprintf(credit,
-             "X68k MDX PlugIn " DLL_VERSION " By Tanimoto / RuRuRu .\n%s",
-             (char *)MXDRV_GetWork( MXDRV_WORK_CREDIT ));
+	wsprintf(credit,
+			TEXT("X68k MDX PlugIn ") TEXT(DLL_VERSION) TEXT(" By Tanimoto / RuRuRu .\n%s"),
+			mdxdrv_credit);
 
-    ::MessageBox(hwndParent, credit, "About X68000 MDX Decorder", MB_OK);
+    ::MessageBox(hwndParent, credit, TEXT("About X68000 MDX Decoder"), MB_OK);
 }
 
 
@@ -34,7 +37,7 @@ void about(HWND hwndParent)
 //ファイル種別問合せ
 // @param fn in 問い合わせファイル名
 // @return 処理対象(!=0)/不明(0)
-int isourfile(char * /*fn*/)
+int isourfile(const wchar_t * /*fn*/)
 {
     // 拡張子による振り分けに任せる
 	return(0);

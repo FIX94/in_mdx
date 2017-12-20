@@ -13,13 +13,47 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 日本語 resources
+// Japanese (Japan) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
-#ifdef _WIN32
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 #pragma code_page(932)
-#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Japanese (Japan) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -27,118 +61,81 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 //
 
 IDD_DIALOG1 DIALOGEX 0, 0, 241, 149
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "X68Sound"
-FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x1
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "X68Sound.DLL設定",IDC_STATIC,7,7,224,128
-    LTEXT           "再生周波数[Hz]",IDC_STATIC,14,22,51,8
-    LTEXT           "PCM変換バッファ[ms]",IDC_STATIC,13,39,71,8
-    LTEXT           "発声バッファサイズ[ms]",IDC_STATIC,13,58,70,8
-    LTEXT           "トータルボリューム[%]",IDC_STATIC,13,77,63,8
+    GROUPBOX        "X68Sound.DLL Setting",IDC_STATIC,7,7,224,128
+    LTEXT           "Playback frequency[Hz]",IDC_STATIC,13,21,112,8
+    LTEXT           "PCM conversion buffer[ms]",IDC_STATIC,13,39,115,8
+    LTEXT           "Speech buffer size[ms]",IDC_STATIC,13,58,114,8
+    LTEXT           "Total volume[%]",IDC_STATIC,13,77,63,8
     LTEXT           "50",IDC_STATIC,119,78,8,8
-    LTEXT           "300",IDC_STATIC,189,78,11,8
-    EDITTEXT        IDC_EDIT5,158,35,30,14,ES_RIGHT | ES_AUTOHSCROLL | 
-                    ES_NUMBER | WS_GROUP
-    CONTROL         "Spin2",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,188,34,9,
-                    14
-    EDITTEXT        IDC_EDIT6,158,55,30,14,ES_RIGHT | ES_AUTOHSCROLL | 
-                    ES_NUMBER | WS_GROUP
-    CONTROL         "Spin2",IDC_SPIN5,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,188,55,9,
-                    14
-    CONTROL         "Slider1",IDC_SLIDER2,"msctls_trackbar32",TBS_AUTOTICKS | 
-                    TBS_BOTH | WS_TABSTOP,128,76,59,10
-    CONTROL         "PCM8使用",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,14,94,48,10
-    CONTROL         "ROMEO使用",IDC_CHECK19,"Button",BS_AUTOCHECKBOX | 
-                    WS_DISABLED | WS_TABSTOP,14,112,53,10
-    COMBOBOX        IDC_FREQUENCY,157,18,57,80,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
+    LTEXT           "300",IDC_STATIC,189,78,14,8
+    EDITTEXT        IDC_EDIT5,160,35,30,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER | WS_GROUP
+    CONTROL         "Spin2",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,190,34,9,14
+    EDITTEXT        IDC_EDIT6,160,55,30,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER | WS_GROUP
+    CONTROL         "Spin2",IDC_SPIN5,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,190,55,9,14
+    CONTROL         "Slider1",IDC_SLIDER2,"msctls_trackbar32",TBS_AUTOTICKS | TBS_BOTH | WS_TABSTOP,128,75,59,12
+    CONTROL         "PCM8 use",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,94,48,10
+    CONTROL         "ROMEO use",IDC_CHECK19,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,112,53,10
+    COMBOBOX        IDC_FREQUENCY,160,18,57,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_DIALOG2 DIALOGEX 0, 0, 241, 149
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
-CAPTION "プラグイン"
-FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x1
+CAPTION "Plug-in"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "IN_MDX設定",IDC_STATIC,7,7,224,76
-    LTEXT           "PDXディレクトリ",IDC_STATIC,13,43,46,8
-    LTEXT           "再生優先度",IDC_STATIC,13,65,45,8
-    EDITTEXT        IDC_EDIT7,65,39,129,14,ES_AUTOHSCROLL | WS_GROUP
-    CONTROL         "AGC",IDC_CHECK18,"Button",BS_AUTOCHECKBOX | WS_DISABLED | 
-                    WS_TABSTOP,65,23,30,10
-    PUSHBUTTON      "参照",IDC_BUTTON1,201,39,22,14
-    GROUPBOX        "フェードアウト",IDC_STATIC,7,85,224,50
-    LTEXT           "ループ数[回]",IDC_STATIC,13,101,41,8
-    LTEXT           "フェードタイム",IDC_STATIC,14,119,45,8
-    LTEXT           "or  演奏時間[分]",IDC_STATIC,91,101,53,8
-    LTEXT           "速",IDC_STATIC,80,119,8,8
-    LTEXT           "遅",IDC_STATIC,151,119,10,8
-    EDITTEXT        IDC_EDIT2,55,97,21,14,ES_RIGHT | ES_AUTOHSCROLL | 
-                    ES_NUMBER | WS_GROUP
-    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,77,97,9,
-                    14
-    EDITTEXT        IDC_EDIT8,144,97,21,14,ES_RIGHT | ES_AUTOHSCROLL | 
-                    ES_NUMBER | WS_GROUP
-    CONTROL         "",IDC_SPIN6,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,166,97,9,
-                    14
-    CONTROL         "",IDC_SLIDER3,"msctls_trackbar32",TBS_AUTOTICKS | 
-                    TBS_BOTH | WS_TABSTOP,90,117,59,10
-    CONTROL         "エラー詳細を非表示",IDC_CHECK20,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,126,23,90,10
-    COMBOBOX        IDC_PRIORITY,65,61,66,80,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    CONTROL         "有効",IDC_ENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    13,23,30,10
+    GROUPBOX        "IN_MDX Setting",IDC_STATIC,7,7,224,76
+    LTEXT           "PDX directory",IDC_STATIC,13,43,46,8
+    LTEXT           "Playback priority",IDC_STATIC,13,65,59,8
+    EDITTEXT        IDC_EDIT7,69,40,134,14,ES_AUTOHSCROLL | WS_GROUP
+    CONTROL         "AGC",IDC_CHECK18,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,69,22,30,10
+    PUSHBUTTON      "...",IDC_BUTTON1,205,40,20,14,BS_CENTER | BS_VCENTER
+    GROUPBOX        "Looping and Fade-out",IDC_STATIC,7,85,224,50
+    LTEXT           "Number of loops",IDC_STATIC,13,100,64,8
+    LTEXT           "Fade time",IDC_STATIC,13,119,45,8
+    LTEXT           "Max Playing time [min]",IDC_STATIC,115,100,71,8
+    LTEXT           "Fast",IDC_STATIC,75,119,13,8
+    LTEXT           "Late",IDC_STATIC,151,119,15,8
+    EDITTEXT        IDC_EDIT2,70,97,25,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER | WS_GROUP
+    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,96,97,10,14
+    EDITTEXT        IDC_EDIT8,189,97,25,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER | WS_GROUP
+    CONTROL         "",IDC_SPIN6,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,97,10,14
+    CONTROL         "",IDC_SLIDER3,"msctls_trackbar32",TBS_AUTOTICKS | TBS_BOTH | WS_TABSTOP,90,115,59,12
+    CONTROL         "Hide error details",IDC_CHECK20,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,125,22,90,10
+    COMBOBOX        IDC_PRIORITY,69,63,66,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Enable",IDC_ENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,22,30,10
 END
 
 IDD_DIALOG3 DIALOGEX 0, 0, 241, 149
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
-CAPTION "チャンネルマスク"
-FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x1
+CAPTION "Channel mask"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    CONTROL         "1",IDC_MUTE_FM1,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    17,34,8,10
-    CONTROL         "2",IDC_MUTE_FM2,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    29,34,8,10
-    CONTROL         "3",IDC_MUTE_FM3,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    41,34,8,10
-    CONTROL         "4",IDC_MUTE_FM4,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    53,34,8,10
-    CONTROL         "5",IDC_MUTE_FM5,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    65,34,8,10
-    CONTROL         "6",IDC_MUTE_FM6,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    77,34,8,10
-    CONTROL         "7",IDC_MUTE_FM7,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    89,34,8,10
-    CONTROL         "8",IDC_MUTE_FM8,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    101,34,8,10
-    CONTROL         "1",IDC_MUTE_PCM1,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    17,66,8,10
-    CONTROL         "2",IDC_MUTE_PCM2,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    29,66,8,10
-    CONTROL         "3",IDC_MUTE_PCM3,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    41,66,8,10
-    CONTROL         "4",IDC_MUTE_PCM4,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    53,66,8,10
-    CONTROL         "5",IDC_MUTE_PCM5,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    65,66,8,10
-    CONTROL         "6",IDC_MUTE_PCM6,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    77,66,8,10
-    CONTROL         "7",IDC_MUTE_PCM7,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    89,66,8,10
-    CONTROL         "8",IDC_MUTE_PCM8,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,
-                    101,66,8,10
-    LTEXT           "FMマスク",IDC_STATIC,15,22,28,8
-    LTEXT           "PCMマスク",IDC_STATIC,15,54,33,8
-    GROUPBOX        "マスク設定",IDC_STATIC,7,7,224,84
+    CONTROL         "1",IDC_MUTE_FM1,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,17,34,8,10
+    CONTROL         "2",IDC_MUTE_FM2,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,29,34,8,10
+    CONTROL         "3",IDC_MUTE_FM3,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,41,34,8,10
+    CONTROL         "4",IDC_MUTE_FM4,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,53,34,8,10
+    CONTROL         "5",IDC_MUTE_FM5,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,65,34,8,10
+    CONTROL         "6",IDC_MUTE_FM6,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,77,34,8,10
+    CONTROL         "7",IDC_MUTE_FM7,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,89,34,8,10
+    CONTROL         "8",IDC_MUTE_FM8,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,101,34,8,10
+    CONTROL         "1",IDC_MUTE_PCM1,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,17,66,8,10
+    CONTROL         "2",IDC_MUTE_PCM2,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,29,66,8,10
+    CONTROL         "3",IDC_MUTE_PCM3,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,41,66,8,10
+    CONTROL         "4",IDC_MUTE_PCM4,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,53,66,8,10
+    CONTROL         "5",IDC_MUTE_PCM5,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,65,66,8,10
+    CONTROL         "6",IDC_MUTE_PCM6,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,77,66,8,10
+    CONTROL         "7",IDC_MUTE_PCM7,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,89,66,8,10
+    CONTROL         "8",IDC_MUTE_PCM8,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE,101,66,8,10
+    LTEXT           "FM mask",IDC_STATIC,15,22,28,8
+    LTEXT           "PCM mask",IDC_STATIC,15,54,33,8
+    GROUPBOX        "Mask setting",IDC_STATIC,7,7,224,84
 END
 
 
@@ -148,7 +145,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_DIALOG1, DIALOG
     BEGIN
@@ -177,40 +174,14 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#include ""winres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,4,4
- PRODUCTVERSION 1,1,4,4
+ FILEVERSION 1,1,4,5
+ PRODUCTVERSION 1,1,4,5
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -223,20 +194,20 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041104b0"
+        BLOCK "000904b0"
         BEGIN
-            VALUE "FileDescription", "in_mdx / MDX decode plugin for WinAmp2"
-            VALUE "FileVersion", "1, 1, 4, 4"
+            VALUE "FileDescription", "in_mdx / MDX decoder plugin for WinAmp2"
+            VALUE "FileVersion", "1, 1, 4, 5"
             VALUE "InternalName", "In_MDX"
             VALUE "LegalCopyright", "Copyright (C) 2000 Tanimoto / 2003 RuRuRu"
             VALUE "OriginalFilename", "In_MDX.dll"
             VALUE "ProductName", "In_MDX"
-            VALUE "ProductVersion", "1, 1, 4, 4"
+            VALUE "ProductVersion", "1, 1, 4, 5"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x411, 1200
+        VALUE "Translation", 0x9, 1200
     END
 END
 
@@ -276,7 +247,28 @@ BEGIN
     0
 END
 
-#endif    // 日本語 resources
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG1 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG2 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG3 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // English resources
 /////////////////////////////////////////////////////////////////////////////
 
 

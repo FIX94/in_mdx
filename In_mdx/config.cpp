@@ -4,71 +4,81 @@
 // use-dll    "MXDRV.DLL","X68Sound.DLL"
 // use-header "depend.h","mxdrv.h"
 //            "in2.h","out.h"
-// 参考       "mxp.c"
+// Reference       "mxp.c"
 //
 #include <windows.h>
 #include <shlobj.h>
 #include <mbstring.h>
+#include <tchar.h>
+#include <stdio.h>
 
 #include "in2.h"
 #include "resource.h"
 #include "in_mdx.h"
 
-struct env_t Env;						// 動作条件
-static int configed;					// 設定変更あり
-static TCHAR SaveFile[MAX_PATH];	// 設定ファイルフルパス
+struct env_t Env;						// Operating Conditions
+static int configed;					// Yes configuration changes
+static TCHAR SaveFile[MAX_PATH];		// Configuration file full path
 
 #define CONFIG_TITLE "Mdx Plug Setting"
 
 typedef struct {
-	char *key;
+	TCHAR *key;
 	int num;
 } KeyInit;
 
 static KeyInit freqlist[] = {
-	{ "96000",		SOUND_96K },
-	{ "88200",		SOUND_88K },
-	{ "62500",		SOUND_62K },
-	{ "48000",		SOUND_48K },
-	{ "44100",		SOUND_44K },
-	{ "22050",		SOUND_22K },
-	{ NULL,			SOUND_22K },
+	{ TEXT("96000"),	SOUND_96K },
+	{ TEXT("88200"),	SOUND_88K },
+	{ TEXT("62500"),	SOUND_62K },
+	{ TEXT("48000"),	SOUND_48K },
+	{ TEXT("44100"),	SOUND_44K },
+	{ TEXT("22050"),	SOUND_22K },
+	{ NULL,				SOUND_22K },
 };
 
 static KeyInit priolist[] = {
-	{ "Highest",	THREAD_PRIORITY_HIGHEST },
-	{ "Higher",		THREAD_PRIORITY_ABOVE_NORMAL },
-	{ "Normal",		THREAD_PRIORITY_NORMAL },
-	{ "Lower",		THREAD_PRIORITY_BELOW_NORMAL },
-	{ "Lowest",		THREAD_PRIORITY_LOWEST },
-	{ NULL,			THREAD_PRIORITY_NORMAL },
+	{ TEXT("Highest"),	THREAD_PRIORITY_HIGHEST },
+	{ TEXT("Higher"),	THREAD_PRIORITY_ABOVE_NORMAL },
+	{ TEXT("Normal"),	THREAD_PRIORITY_NORMAL },
+	{ TEXT("Lower"),	THREAD_PRIORITY_BELOW_NORMAL },
+	{ TEXT("Lowest"),	THREAD_PRIORITY_LOWEST },
+	{ NULL,				THREAD_PRIORITY_NORMAL },
 };
 
-//条件設定値ロード
-void EnvLoad( char *fn )
+//Condition setting value load
+void EnvLoad( TCHAR *fn )
 {
 	lstrcpy( SaveFile, fn );
+	FILE *stream = NULL;
+	// make sure the file does not already exist
+	if (_tfopen_s(&stream, SaveFile, TEXT("r")) != 0)
+	{
+		// create file with encoding UTF-16LE
+		_tfopen_s(&stream, SaveFile, TEXT("w, ccs=UTF-16LE"));
+	}
+	if (stream != NULL) fclose(stream);
+
 	configed = 0;
-	Env.samprate = GetPrivateProfileInt( "Switch", "SampleRate", 22050, SaveFile );
-	Env.pcmbuf = GetPrivateProfileInt( "Switch", "PCMBuf", 5, SaveFile );
-	Env.late = GetPrivateProfileInt( "Switch", "Late", 500, SaveFile );
-	Env.pcm8use = GetPrivateProfileInt( "Switch", "PCM8", 1, SaveFile );
-	Env.priority = GetPrivateProfileInt( "Switch", "Priority", 50, SaveFile );
-	Env.Loop = GetPrivateProfileInt( "Switch", "Loop", 3, SaveFile );
-	Env.qtime = GetPrivateProfileInt( "Switch", "Qtime", 2, SaveFile );
-	Env.TotalVolume = GetPrivateProfileInt( "Switch", "TotalVolume", 100, SaveFile );
-	Env.FadeTime = GetPrivateProfileInt( "Switch", "FadeTime", 19, SaveFile );
-	Env.agc = GetPrivateProfileInt( "Switch", "AGC", 0, SaveFile );
-	Env.ROMEO = GetPrivateProfileInt( "Switch", "ROMEO", 0, SaveFile );
-	Env.ignoreErr = GetPrivateProfileInt( "Switch", "IgnoreError", 1, SaveFile );
-	Env.enable = (BOOL)GetPrivateProfileInt("Switch", "Enable", 1, SaveFile);
-	GetPrivateProfileString( "Path", "PDX", "c:\\", Env.PdxDir, sizeof( Env.PdxDir ), SaveFile );
-	// PDXパス名を補完
+	Env.samprate = GetPrivateProfileInt( TEXT("Switch"), TEXT("SampleRate"), 22050, SaveFile );
+	Env.pcmbuf = GetPrivateProfileInt( TEXT("Switch"), TEXT("PCMBuf"), 5, SaveFile );
+	Env.late = GetPrivateProfileInt( TEXT("Switch"), TEXT("Late"), 500, SaveFile );
+	Env.pcm8use = GetPrivateProfileInt( TEXT("Switch"), TEXT("PCM8"), 1, SaveFile );
+	Env.priority = GetPrivateProfileInt( TEXT("Switch"), TEXT("Priority"), 50, SaveFile );
+	Env.Loop = GetPrivateProfileInt( TEXT("Switch"), TEXT("Loop"), 3, SaveFile );
+	Env.qtime = GetPrivateProfileInt( TEXT("Switch"), TEXT("Qtime"), 2, SaveFile );
+	Env.TotalVolume = GetPrivateProfileInt( TEXT("Switch"), TEXT("TotalVolume"), 100, SaveFile );
+	Env.FadeTime = GetPrivateProfileInt( TEXT("Switch"), TEXT("FadeTime"), 19, SaveFile );
+	Env.agc = GetPrivateProfileInt( TEXT("Switch"), TEXT("AGC"), 0, SaveFile );
+	Env.ROMEO = GetPrivateProfileInt( TEXT("Switch"), TEXT("ROMEO"), 0, SaveFile );
+	Env.ignoreErr = GetPrivateProfileInt( TEXT("Switch"), TEXT("IgnoreError"), 1, SaveFile );
+	Env.enable = (BOOL)GetPrivateProfileInt( TEXT("Switch"), TEXT("Enable"), 1, SaveFile );
+	GetPrivateProfileString( TEXT("Path"), TEXT("PDX"), TEXT("c:\\"), Env.PdxDir, sizeof( Env.PdxDir ), SaveFile );
+	// PDX Complements the path name
 	{
 	int l = lstrlen( Env.PdxDir);
-	//日本語対応
-	if ( (Env.PdxDir[l-1] == '\\') &&
-		(!_ismbstrail( (const unsigned char *)Env.PdxDir , (const unsigned char *)&Env.PdxDir[l-1]) ) ) {
+	//Japanese support
+	if ( (Env.PdxDir[l-1] == '\\') ) {
 	} else {
 		Env.PdxDir[l] = '\\';
 		Env.PdxDir[l+1] = '\0';
@@ -80,47 +90,47 @@ void EnvLoad( char *fn )
 	else					mod.FileExtensions = "\0\0";
 }
 
-//コードへらし
-static BOOL WritePrivateProfileInt(LPCSTR lpszSection,LPCSTR lpszKey,int dwValue,LPCSTR lpszFile)
+//Likelihood to the code
+static BOOL WritePrivateProfileInt(LPCTSTR lpszSection, LPCTSTR lpszKey,int dwValue, LPCTSTR lpszFile)
 {
-	char buf[64];
+	TCHAR buf[64];
 
-	wsprintf(buf, "%d", dwValue);
+	wsprintf(buf, TEXT("%d"), dwValue);
 	return(WritePrivateProfileString(lpszSection, lpszKey, buf, lpszFile));
 }
 
 
-//条件設定値セーブ
+//Condition setting value save
 void EnvSave()
 {
 	if ( configed ) {
-		//変更した時のみ
-		WritePrivateProfileInt( "Switch", "SampleRate", Env.samprate, SaveFile );
-		WritePrivateProfileInt( "Switch", "PCMBuf", Env.pcmbuf, SaveFile );
-		WritePrivateProfileInt( "Switch", "Late", Env.late, SaveFile );
-		WritePrivateProfileInt( "Switch", "PCM8", Env.pcm8use, SaveFile );
-		WritePrivateProfileInt( "Switch", "Priority", Env.priority, SaveFile );
-		WritePrivateProfileInt( "Switch", "Loop", Env.Loop, SaveFile );
-		WritePrivateProfileInt( "Switch", "Qtime", Env.qtime, SaveFile );
-		WritePrivateProfileInt( "Switch", "TotalVolume", Env.TotalVolume, SaveFile );
-		WritePrivateProfileInt( "Switch", "FadeTime", Env.FadeTime, SaveFile );
-		WritePrivateProfileInt( "Switch", "AGC", Env.agc, SaveFile );
-		WritePrivateProfileInt( "Switch", "ROMEO", Env.ROMEO, SaveFile );
-		WritePrivateProfileInt( "Switch", "IgnoreError", Env.ignoreErr, SaveFile );
-		WritePrivateProfileInt( "Switch", "Enable", Env.enable, SaveFile );
-		WritePrivateProfileString( "Path", "PDX", Env.PdxDir, SaveFile );
+		//Only when you have changed
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("SampleRate"), Env.samprate, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("PCMBuf"), Env.pcmbuf, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("Late"), Env.late, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("PCM8"), Env.pcm8use, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("Priority"), Env.priority, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("Loop"), Env.Loop, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("Qtime"), Env.qtime, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("TotalVolume"), Env.TotalVolume, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("FadeTime"), Env.FadeTime, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("AGC"), Env.agc, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("ROMEO"), Env.ROMEO, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("IgnoreError"), Env.ignoreErr, SaveFile );
+		WritePrivateProfileInt( TEXT("Switch"), TEXT("Enable"), Env.enable, SaveFile );
+		WritePrivateProfileString( TEXT("Path"), TEXT("PDX"), Env.PdxDir, SaveFile );
 	}
 }
 
-// プロパティシート用コールバック(X68Sound.dll用)
+// Property sheet callback(X68Sound.dllUse)
 static BOOL CALLBACK ConfigDlgFunc(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	char strtemp[MAX_PATH];
+	TCHAR strtemp[MAX_PATH];
 	int i;
 
 	switch(message) {
 	  case WM_INITDIALOG:
-		// 項目の初期化(samprate)
+		// Initialization of the item(samprate)
 		::SendDlgItemMessage(hdwnd, IDC_FREQUENCY, CB_SETEXTENDEDUI, TRUE, 0);
 		for (i = 0; freqlist[i].key != NULL; i++) {
 			::SendDlgItemMessage(hdwnd, IDC_FREQUENCY, CB_ADDSTRING, 0, (LPARAM)freqlist[i].key);
@@ -130,21 +140,21 @@ static BOOL CALLBACK ConfigDlgFunc(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 		}
 		if (freqlist[i].key == NULL) i = 0;
 		::SendDlgItemMessage(hdwnd, IDC_FREQUENCY, CB_SELECTSTRING, (WPARAM)-1, (LPARAM)freqlist[i].key);
-		// 項目の初期化(pcmbuf)
-		wsprintf(strtemp, "%d", Env.pcmbuf);
+		// Initialization of the item(pcmbuf)
+		wsprintf(strtemp, TEXT("%d"), Env.pcmbuf);
 		::SetDlgItemText(hdwnd, IDC_EDIT5, strtemp);
-		// 項目の初期化(late)
-		wsprintf(strtemp, "%d", Env.late);
+		// Initialization of the item(late)
+		wsprintf(strtemp, TEXT("%d"), Env.late);
 		::SetDlgItemText(hdwnd, IDC_EDIT6, strtemp);
-		// トータルボリューム
+		// Total volume
 		::SendDlgItemMessage(hdwnd, IDC_SLIDER2, TBM_SETRANGE, 0, (LPARAM)MAKELONG(50, 300));
 		::SendDlgItemMessage(hdwnd, IDC_SLIDER2, TBM_SETTICFREQ, 50, 0);
 		::SendDlgItemMessage(hdwnd, IDC_SLIDER2, TBM_SETPOS, TRUE, Env.TotalVolume );
-		// 項目の初期化(PCM8使用)
+		// Initialization of the item(PCM8Use)
 		::SendDlgItemMessage(hdwnd, IDC_CHECK1, BM_SETCHECK, Env.pcm8use, 0);
-		// 項目の初期化(ROMEO使用)
+		// Initialization of the item(ROMEOUse)
 		::SendDlgItemMessage(hdwnd, IDC_CHECK19, BM_SETCHECK, Env.ROMEO, 0);
-		// MIN/MAX の設定
+		// MIN/MAX Setting of
 		::SendDlgItemMessage(hdwnd, IDC_SPIN4, UDM_SETRANGE, 0, (LPARAM)MAKELONG(200, 1));
 		::SendDlgItemMessage(hdwnd, IDC_SPIN5, UDM_SETRANGE, 0, (LPARAM)MAKELONG(500, 1));
 		return 1;
@@ -153,33 +163,33 @@ static BOOL CALLBACK ConfigDlgFunc(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 		switch (PSHNotify->hdr.code) {
 		  case PSN_APPLY:
 			{
-				char buf[MAX_PATH];
-				// 項目の保存(samprate)
+				TCHAR buf[MAX_PATH];
+				// Save item(samprate)
 				::GetDlgItemText(hdwnd, IDC_FREQUENCY, buf, sizeof(buf));
 				for (i = 0; freqlist[i].key != NULL; i++) {
 					if (lstrcmpi(buf, freqlist[i].key) == 0) break;
 				}
 				Env.samprate = freqlist[i].num;
 
-				// 項目の保存(pcmbuf)
+				// Save item(pcmbuf)
 				::GetDlgItemText(hdwnd, IDC_EDIT5, strtemp, MAX_PATH);
-				Env.pcmbuf = atoi(strtemp);
+				Env.pcmbuf = _wtoi(strtemp);
 				if(Env.pcmbuf <   1)  Env.pcmbuf =   1;
 				if(Env.pcmbuf > 200)  Env.pcmbuf = 200;
 
-				// 項目の保存(late)
+				// Save item(late)
 				::GetDlgItemText(hdwnd, IDC_EDIT6, strtemp, MAX_PATH);
-				Env.late = atoi(strtemp);
+				Env.late = _wtoi(strtemp);
 				if(Env.late <   1)  Env.late =   1;
 				if(Env.late > 500)  Env.late = 500;
 
-				// トータルボリューム
+				// Total volume
 				Env.TotalVolume = ::SendDlgItemMessage(hdwnd, IDC_SLIDER2, TBM_GETPOS,0,0 );
 
-				// 項目の保存(pcm8use)
+				// Save item(pcm8use)
 				Env.pcm8use = ::SendDlgItemMessage(hdwnd, IDC_CHECK1, BM_GETCHECK, 0, 0);
 
-				// 項目の保存(ROMEO)
+				// Save item(ROMEO)
 				Env.ROMEO = ::SendDlgItemMessage(hdwnd, IDC_CHECK19, BM_GETCHECK, 0, 0);
 				configed = 1;
 				return(1);
@@ -200,23 +210,23 @@ static BOOL CALLBACK ConfigDlgFunc(HWND hdwnd, UINT message, WPARAM wParam, LPAR
 	return(0);
 }
 
-// プロパティシート用コールバック(PlugIn用)
+// Property sheet callback(PlugInUse)
 static BOOL CALLBACK ConfigDlg2Func(HWND hdwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	char strtemp[MAX_PATH];
+	TCHAR strtemp[MAX_PATH];
 	int i;
 
 	switch(message) {
 	case WM_INITDIALOG:
 
 		// 項目の初期化(PdxDir)
-		wsprintf(strtemp, "%s", Env.PdxDir);
+		wsprintf(strtemp, TEXT("%s"), Env.PdxDir);
 		::SetDlgItemText(hdwnd, IDC_EDIT7, strtemp);
 		// 項目の初期化(ループ回数)
-		wsprintf(strtemp, "%d", Env.Loop);
+		wsprintf(strtemp, TEXT("%d"), Env.Loop);
 		::SetDlgItemText(hdwnd, IDC_EDIT2, strtemp);
 		// 項目の初期化(qtime)
-		wsprintf(strtemp, "%d", Env.qtime);
+		wsprintf(strtemp, TEXT("%d"), Env.qtime);
 		::SetDlgItemText(hdwnd, IDC_EDIT8, strtemp);
 		// 項目の初期化(AGC使用)
 		::SendDlgItemMessage(hdwnd, IDC_CHECK18, BM_SETCHECK, Env.agc, 0);
@@ -247,13 +257,13 @@ static BOOL CALLBACK ConfigDlg2Func(HWND hdwnd, UINT message, WPARAM wParam, LPA
 		switch(LOWORD(wParam)) {
 		  case IDC_BUTTON1:
 			{
-				char aPath[MAX_PATH];
+				TCHAR aPath[MAX_PATH];
 				BROWSEINFO oBrInfo;
 				LPITEMIDLIST idlist;
 				::ZeroMemory(&oBrInfo, sizeof(BROWSEINFO));
 				oBrInfo.hwndOwner = hdwnd;
 				oBrInfo.pszDisplayName = aPath;
-				oBrInfo.lpszTitle = "PDXのディレクトリーを指定";
+				oBrInfo.lpszTitle = TEXT("Select PDX directory");
 				oBrInfo.ulFlags = (BIF_EDITBOX | BIF_RETURNONLYFSDIRS);
 
 				idlist = ::SHBrowseForFolder(&oBrInfo);
@@ -262,7 +272,7 @@ static BOOL CALLBACK ConfigDlg2Func(HWND hdwnd, UINT message, WPARAM wParam, LPA
 					::CoTaskMemFree(idlist);
 
 					// 項目の初期化(PdxDir)
-					wsprintf(strtemp, "%s", Env.PdxDir);
+					wsprintf(strtemp, TEXT("%s"), Env.PdxDir);
 					::SetDlgItemText(hdwnd, IDC_EDIT7, strtemp);
 				}
 			}
@@ -282,7 +292,7 @@ static BOOL CALLBACK ConfigDlg2Func(HWND hdwnd, UINT message, WPARAM wParam, LPA
 		  case PSN_APPLY:
 			{
 				// 再生優先度
-				char buf[MAX_PATH];
+				TCHAR buf[MAX_PATH];
 				::GetDlgItemText(hdwnd, IDC_PRIORITY, buf, sizeof(buf));
 				for (i = 0; priolist[i].key != NULL; i++) {
 					if (lstrcmpi(buf, priolist[i].key) == 0) break;
@@ -328,13 +338,13 @@ static BOOL CALLBACK ConfigDlg2Func(HWND hdwnd, UINT message, WPARAM wParam, LPA
 
 				// 項目の保存(ループ回数)
 				::GetDlgItemText(hdwnd, IDC_EDIT2, strtemp, MAX_PATH);
-				Env.Loop = atoi(strtemp);
+				Env.Loop = _wtoi(strtemp);
 				if(Env.Loop <  1)  Env.Loop =  1;
 				if(Env.Loop > 99)  Env.Loop = 99;
 
 				// 項目の保存(q時間)
 				::GetDlgItemText(hdwnd, IDC_EDIT8, strtemp, MAX_PATH);
-				Env.qtime = atoi(strtemp);
+				Env.qtime = _wtoi(strtemp);
 				if(Env.qtime <  1)  Env.qtime =  1;
 				if(Env.qtime > 60)  Env.qtime = 60;
 
@@ -430,7 +440,7 @@ void config(HWND hwndParent)
 	oPSHeader.dwFlags     = PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
 	oPSHeader.hwndParent  = hwndParent;
 	oPSHeader.hInstance   = mod.hDllInstance;
-	oPSHeader.pszCaption  = (LPSTR)CONFIG_TITLE;
+	oPSHeader.pszCaption  = TEXT(CONFIG_TITLE);
 	oPSHeader.nPages      = sizeof(aPSPage) / sizeof(PROPSHEETPAGE);
 	oPSHeader.ppsp        = (LPCPROPSHEETPAGE) &aPSPage;
 

@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <shlwapi.h>
 #include <mbstring.h>
+#include <locale.h>
 
 #include "in2.h"
 #define __MXDRV_LOADMODULE
@@ -61,6 +62,7 @@ HANDLE g_hSeekEvent = NULL;						// シーク用イベントハンドル
 BOOL g_bMxdrvStarted = FALSE;					// 常駐検査
 BOOL g_bDecodeThread = FALSE;					// 再生スレッド生存フラグ
 HANDLE g_hThreadHandle = NULL;					// the handle to the decode thread
+_locale_t g_locale = NULL;						// Used for Shift-JIS to Unicode
 
 //////////////////////////////////////////////////
 // WINAMP起動時に1回だけ初期化
@@ -71,7 +73,7 @@ static void init()
 	//iniファイル名を作る
 	::GetModuleFileName(mod.hDllInstance, aIniFileName, MAX_PATH);
 	PathRemoveFileSpec(aIniFileName);
-	PathAppend(aIniFileName, "in_mdx.ini");
+	PathAppend(aIniFileName, TEXT("in_mdx.ini"));
 
 	//iniファイルから設定をロード
 	EnvLoad(aIniFileName);
@@ -79,10 +81,10 @@ static void init()
 	g_bMxdrvStarted = FALSE;
 
 	// DLLアタッチ
-	g_hinstMXDRV = ::LoadLibrary(MXDRV_DLL_NAME);
+	g_hinstMXDRV = ::LoadLibrary(TEXT(MXDRV_DLL_NAME));
 	if (g_hinstMXDRV == NULL) {
 		::MessageBox(::GetDesktopWindow(),
-		"mxdrv.dllの読み込みに失敗しました。", DLL_NAME, MB_ICONSTOP|MB_OK);
+		TEXT("Failed to load mxdrv.dll."), TEXT(DLL_VERSION), MB_ICONSTOP|MB_OK);
 		return;
 	}
 	MXDRV_Start   = (int (*)(int, int, int, int, int, int, int))GetProcAddress(g_hinstMXDRV, "MXDRV_Start");
@@ -101,6 +103,9 @@ static void init()
 	//イベント作成
 	g_hSeekEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
 
+	// locale to be used globally
+	g_locale = _create_locale(LC_ALL, ".932");
+
 	return;
 }
 
@@ -114,7 +119,13 @@ static void quit()
 	}
 	if (g_hinstMXDRV != NULL) {
 		::FreeLibrary(g_hinstMXDRV);
+		g_hinstMXDRV = NULL;
 	}
+	if (g_locale != NULL) {
+		_free_locale(g_locale);
+		g_locale = NULL;
+	}
+
 	// iniファイルへの保存
 	EnvSave();
 }
@@ -166,46 +177,46 @@ static void ExtractPath(
 	TCHAR c;
 	TCHAR *p2 = NULL;
 
-	do {
+	for(;;) {
 		c = *(p);
-		if ( c == '\0' ) break;
-		if ( _ismbblead(c) ) {
-			p = (TCHAR *)_mbsinc( (const unsigned char *)p );
-		} else {
-			if ( c == '\\' ) {
-				p2 = p;
-			}
-			p++;
+		if (c == '\0') break;
+		if (c == '\\') {
+			p2 = p;
 		}
-	} while (!0);
+		p++;
+	}
 	p2[1] = '\0';
 }
 
 
 //////////////////////////////////////////////////
 // PDXを探し絶対パスを返す
-char *SearchPdx(char *mdxpath , char *pdxpath , unsigned char *fn)
+TCHAR *SearchPdx(TCHAR *mdxpath , TCHAR *pdxpath , const char *fn)
 {
 	static TCHAR pdxfilename[MAX_PATH+1];
+	static TCHAR pdxfile[MAX_PATH+1];
+	size_t ldummy;
+	mbstowcs_s(&ldummy, pdxfile, fn, MAX_PATH);
 
 	HANDLE hPdxFile = INVALID_HANDLE_VALUE;
 	for (int i=1; hPdxFile == INVALID_HANDLE_VALUE; i++) {
 		switch(i) {
 		  case 1:
 			// mdxパス
-			  wsprintf(pdxfilename, "%s%s", mdxpath, fn);
+			wsprintf(pdxfilename, TEXT("%s%s"), mdxpath, pdxfile);
 			break;
 		  case 2:
 			// mdxパス(.pdx付ける)
-			wsprintf(pdxfilename, "%s%s.pdx", mdxpath, fn);
+			wsprintf(pdxfilename, TEXT("%s%s.pdx"), mdxpath, pdxfile);
 			break;
 		  case 3:
 			// pdxパス
-			wsprintf(pdxfilename, "%s%s", pdxpath, fn);
+			wsprintf(pdxfilename, TEXT("%s%s"), pdxpath, pdxfile);
 			break;
 		  case 4:
 			// pdxパス(.pdx付ける)
-			wsprintf(pdxfilename, "%s%s.pdx", pdxpath, fn);
+			wsprintf(pdxfilename, TEXT("%s%s.pdx"), pdxpath, pdxfile);
+			break;
 		  default:
 			// 発見できず
 			return(NULL);
@@ -234,7 +245,7 @@ void ConvTitle( unsigned char *mdxbuf )
 	j = 0;
 	for (i = 0 ; ;) {
 		if (mdxbuf[i+j] == 0) break;
-		if (_ismbslead( (const unsigned char *)mdxbuf , (const unsigned char *)(mdxbuf+i+j))) {
+		if ( _ismbslead_l( (const unsigned char *)mdxbuf , (const unsigned char *)(mdxbuf+i+j), g_locale) ) {
 			if ( (mdxbuf[i+j] == 0x80) || // 1/2角
 			     (mdxbuf[i+j] == 0xf0) || // 1/4上付き
 			     (mdxbuf[i+j] == 0xf1) ||
@@ -243,7 +254,7 @@ void ConvTitle( unsigned char *mdxbuf )
 				j++;
 				continue;
 			}
-		} else if ( !_ismbstrail( (const unsigned char *)mdxbuf , (const unsigned char *)(mdxbuf+i+j)) ) {
+		} else if ( !_ismbstrail_l( (const unsigned char *)mdxbuf , (const unsigned char *)(mdxbuf+i+j), g_locale) ) {
 			if (mdxbuf[ i+j ] < 0x20) mdxbuf[ i+j ] = 0x20;
 		}
 		mdxbuf[i] = mdxbuf[i+j];
@@ -266,7 +277,7 @@ enum ePlay_err{
 // MXPより拝借
 static int PlayMDX(
 	HWND hwnd,
-	TCHAR *mdxname
+	const wchar_t *mdxname
 ) {
 	TCHAR mdxfilename[MAX_PATH+1];
 	TCHAR mdxpath[MAX_PATH+1];
@@ -279,7 +290,7 @@ static int PlayMDX(
 	TCHAR *dummy;
 	int mdxbufsize;
 	int pdxbufsize;
-	char *pdxfn;
+	TCHAR *pdxfn;
 	int mdxfsiz;
 	int ret;
 	BYTE *mdxbuf;
@@ -305,7 +316,7 @@ try
 	hPdxFile = NULL;
 
 	// MDXパス名を生成
-	GetFullPathName(mdxname, sizeof(mdxfilename), mdxfilename, &dummy);
+	GetFullPathName(mdxname, MAX_PATH, mdxfilename, &dummy);
 	lstrcpy(mdxpath, mdxfilename);
 	ExtractPath(mdxpath);
 
@@ -381,7 +392,7 @@ try
 	
 	// PDXを読み込む
 	if ( *(p2) ) {
-		pdxfn = SearchPdx( mdxpath , Env.PdxDir , p2 );
+		pdxfn = SearchPdx( mdxpath, Env.PdxDir , (const char*)p2 );
 		if ( pdxfn != NULL ) {
 			hPdxFile = ::CreateFile(
 							pdxfn,
@@ -501,8 +512,13 @@ try
 	mdxbuf[6] = 0x00;
 	mdxbuf[7] = 0x08;
 	mdxsize += 8;
-	lstrcpy( g_MDXTitle, (TCHAR *)&mdxbuf[8] );
-	ConvTitle( (unsigned char *)g_MDXTitle );
+
+	char tmp_title[256];
+	lstrcpyA(tmp_title, (char *)&mdxbuf[8] );
+	ConvTitle( (unsigned char *)tmp_title);
+	size_t ldummy;
+	//g_locale has codepage 932 set so this does sjis to utf-16le
+	_mbstowcs_s_l(&ldummy, g_MDXTitle, tmp_title, 256, g_locale);
 
 	// MXDRV呼び出し(曲時間取得)
 	g_PlayTime = MXDRV_MeasurePlayTime( mdxbuf, mdxfsiz+8, pdxbuf, pdxsize, Env.Loop, TRUE );
@@ -517,32 +533,32 @@ try
 	TCHAR errmsg[MAX_PATH+256];
 	switch ( iREASON ) {
 	case err_readmdx:
-		wsprintf( errmsg, "MDXファイル(%s)の読み込みに失敗しました。", mdxfilename );
+		wsprintf( errmsg, TEXT("Failed to read MDX file (% s)."), mdxfilename );
 		break;
 	case err_readpdx:
-		wsprintf( errmsg, "PDXファイル(%s)の読み込みに失敗しました。", pdxfn);
+		wsprintf( errmsg, TEXT("Failed to read PDX file (% s)."), pdxfn);
 		break;
 	case err_brokenmdx:
-		wsprintf( errmsg, "ファイル(%s)はMDXでないか、壊れています。", mdxfilename );
+		wsprintf( errmsg, TEXT("Not a MDX file (% s)."), mdxfilename );
 		break;
 	case err_brokenpdx:
-		wsprintf( errmsg, "ファイル(%s)はPDXでないか、壊れています。", pdxfn );
+		wsprintf( errmsg, TEXT("Not a PDX file (% s)."), pdxfn );
 		break;
 	case err_mdxbuf:
-		wsprintf( errmsg, "ファイル(%s)を読むMDXバッファが足りません。", mdxfilename );
+		wsprintf( errmsg, TEXT("Not enough memory to read MDX file (% s)."), mdxfilename );
 		break;
 	case err_pdxbuf:
-		wsprintf( errmsg, "ファイル(%s)を読むPDXバッファが足りません。", pdxfn );
+		wsprintf( errmsg, TEXT("Not enough memory to read PDX file (% s)."), pdxfn );
 		break;
 	case err_mxdrv:
-		wsprintf( errmsg, "mxdrv.dllの初期化に失敗しました。" );
+		wsprintf( errmsg, TEXT("Failed to initialize mxdrv.dll.") );
 		break;
 	default:
-		wsprintf( errmsg, "内部エラー。" );
+		wsprintf( errmsg, TEXT("Internal error.") );
 		break;
 	}
 	if (Env.ignoreErr == false) {
-		::MessageBox( hwnd, errmsg, DLL_NAME, MB_ICONSTOP|MB_OK );
+		::MessageBox( hwnd, errmsg, TEXT(DLL_VERSION), MB_ICONSTOP|MB_OK );
 	}
 	ret = -1;	//エラー終了
 }
@@ -564,14 +580,14 @@ DWORD WINAPI __stdcall PlayThread(void *b);
 //再生
 // @param fn in 対象のファイル名
 // @return 成功(=0)/対象ファイル無し(=-1)/その他のエラー(>0,<-1)
-int play(char *fn) 
+int play(const wchar_t *fn)
 { 
 	//アウトプットプラグイン設定
 	int maxlatency;
 	maxlatency = mod.outMod->Open(Env.samprate, NCH, BPS, 0, 0);
 	if (maxlatency < 0) {	// error opening device
 		MessageBox(GetDesktopWindow(),
-			"outMod open error", DLL_NAME, MB_ICONSTOP|MB_OK);
+			TEXT("outMod open error"), TEXT(DLL_VERSION), MB_ICONSTOP|MB_OK);
 		return(1);
 	}
 
@@ -632,7 +648,7 @@ void stop()
 	if (g_hThreadHandle != NULL) {
 		g_bDecodeThread = FALSE;
 		if (::WaitForSingleObject(g_hThreadHandle, INFINITE) == WAIT_TIMEOUT) {
-			::MessageBox(mod.hMainWindow, "error asking thread to die!\n", "error killing decode thread", 0);
+			::MessageBox(mod.hMainWindow, TEXT("error asking thread to die!\n"), TEXT("error killing decode thread"), 0);
 			::TerminateThread(g_hThreadHandle, 0);
 		}
 		::CloseHandle(g_hThreadHandle);
@@ -676,7 +692,7 @@ void setoutputtime(int time_in_ms)
 //////////////////////////////////////////////////
 // 曲タイトル取得
 // @return 0:正常/-1:失敗
-int GetFileMDXTitle( char *mdxfilename, char *title, char *pdx )
+int GetFileMDXTitle( const wchar_t *mdxfilename, wchar_t *title, wchar_t *pdx )
 {
 	BYTE *mdxbuf = NULL;
 	int mdxsize, mdxbufsize = 1*1024;
@@ -708,15 +724,22 @@ int GetFileMDXTitle( char *mdxfilename, char *title, char *pdx )
 	::CloseHandle(hMdxFile);
 
 	//タイトル
+	char tmp_title[256];
 	int i;
 	for ( i = 0 ; i < mdxsize ; i++ ) {
-		if ( (mdxbuf[i] == 0x0d) || (mdxbuf[i] == 0) ) break;
-		title[i] = mdxbuf[i];
+		if ( (mdxbuf[i] == 0x0d) || (mdxbuf[i] == 0) || i == 255 ) break;
+		tmp_title[i] = mdxbuf[i];
 	}
-	title[i]=0;
-	if ( i == 0 ) lstrcpy( title , mdxfilename );
-//title[40] = 0;	//@@@
-	ConvTitle( (unsigned char *)title );
+	tmp_title[i]=0;
+	if ( i == 0 )
+		wcsncpy_s(title, GETFILEINFO_TITLE_LENGTH, mdxfilename, 256);
+	else {
+		ConvTitle((unsigned char *)tmp_title);
+		size_t ldummy;
+		//g_locale has codepage 932 set so this does sjis to utf-16le
+		_mbstowcs_s_l(&ldummy, title, GETFILEINFO_TITLE_LENGTH, tmp_title, 256, g_locale);
+	}
+
 	//タイトル終了までスキップ
 	for ( ; ; i++ ) {
 		if ( mdxbuf[i] == 0 ) break;
@@ -739,25 +762,26 @@ int GetFileMDXTitle( char *mdxfilename, char *title, char *pdx )
 
 //////////////////////////////////////////////////
 //ファイル情報詳細表示
-int infoDlg(char *fn, HWND hwnd)
+int infoDlg(const wchar_t *fn, HWND hwnd)
 {
-	char title[1024] , pdx[1024] , *p;
+	wchar_t title[GETFILEINFO_TITLE_LENGTH], pdx[1024];
+	const wchar_t *p;
 
-	p = fn + lstrlen(fn);
+	p = fn + wcslen(fn);
 	for (;;) {
 		p--;
 		if (p < fn) break;
-		if (!_ismbstrail( (const unsigned char *)fn , (const unsigned char *)p ) && *p == '\\') break;
+		if (*p == L'\\') break;
 	}
 	p++;
 	if (GetFileMDXTitle(fn, title, pdx) == 0) {
-		lstrcat( title , "\n\nMDXfile " );
-		lstrcat( title , fn );
-		lstrcat( title , "\nPDXfile " );
+		wcscat_s( title , TEXT("\n\nMDXfile ") );
+		wcscat_s( title , fn );
+		wcscat_s( title , TEXT("\nPDXfile ") );
 		if ( pdx[0] ) {
-			lstrcat( title, pdx );
+			wcscat_s( title, pdx );
 		} else {
-			lstrcat( title, "<none>" );
+			wcscat_s( title, TEXT("<none>") );
 		}
 		::MessageBox(hwnd, title, p, MB_OK);
 		return(0);
@@ -769,13 +793,13 @@ int infoDlg(char *fn, HWND hwnd)
 
 //////////////////////////////////////////////////
 //ファイル情報取得(プレイ、シーク時)
-void getfileinfo(char *filename, char *title, int *length_in_ms)
+void getfileinfo(const wchar_t *filename, wchar_t *title, int *length_in_ms)
 {
 	if (!filename || !*filename) {	// currently playing file
-		if (title) lstrcpy( title , g_MDXTitle );
+		if (title) wcsncpy_s( title, GETFILEINFO_TITLE_LENGTH, g_MDXTitle, GETFILEINFO_TITLE_LENGTH );
 		if (length_in_ms) *length_in_ms = g_PlayTime;
 	} else {
-		char pdx[1024];
+		wchar_t pdx[1024];
 		GetFileMDXTitle( filename , title, pdx );
 		if (length_in_ms) *length_in_ms=-1000;
 	}
@@ -900,7 +924,7 @@ DWORD WINAPI __stdcall PlayThread(void *p_bDecode)
 In_Module mod = 
 {
 	IN_VER,
-	"X68000 MDX Decorder " DLL_VERSION " (x86)",
+	"X68000 MDX Decoder " DLL_VERSION " (x86)",
 	0,	// hMainWindow
 	0,  // hDllInstance
 	FILE_EXT,

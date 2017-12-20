@@ -8,7 +8,7 @@
 //
 
 #define DLL_NAME    "in_mdx.dll"
-#define DLL_VERSION "v1.14.4"
+#define DLL_VERSION "v1.14.5"
 #define FILE_EXT "MDX\0MDX Audio File (*.MDX)\0"
 
 //出力waveフォーマット
@@ -49,7 +49,7 @@ extern struct env_t Env;
 void SetChannelPlayFlagMDX( DWORD status );
 
 //config
-void EnvLoad( char *fn );
+void EnvLoad( TCHAR *fn );
 void EnvSave();
 
 //WINAMPエントリ
@@ -57,8 +57,8 @@ void about(HWND hwndParent);
 void config(HWND hwndParent);
 static void init(void);
 static void quit(void);
-int isourfile(char *fn);
-int play(char *fn);
+int isourfile(const wchar_t *fn);
+int play(const wchar_t *fn);
 void pause();
 void unpause();
 int ispaused();
@@ -68,9 +68,9 @@ int getoutputtime();
 void setoutputtime(int time_in_ms);
 void setvolume(int volume);
 void setpan(int pan);
-int infoDlg(char *fn, HWND hwnd);
-void getfileinfo(char *filename, char *title, int *length_in_ms);
-void eq_set(int on, char data[10], int preamp);
+int infoDlg(wchar_t *fn, HWND hwnd);
+void getfileinfo(wchar_t *filename, wchar_t *title, int *length_in_ms);
+void eq_set(int on, char *data, int preamp);
 
 //winampお約束テーブル
 extern In_Module mod;
